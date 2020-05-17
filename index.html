@@ -146,21 +146,21 @@
       <div class="blob odp-color" style="margin-top:14px;"></div>
       <div>
         <p class="data-title">ORANG DALAM PEMANTAUAN</p>
-        <p class="data-number">50 Jiwa</p>
+        <p class="data-number" id="odp_counter">Unavailable</p>
       </div>
     </div>
      <div class="data">
       <div class="blob pdp-color" style="margin-top:14px;"></div>
       <div>
         <p class="data-title">PASIEN DALAM PEMANTAUAN</p>
-        <p class="data-number">20 Jiwa</p>
+        <p class="data-number" id="pdp_counter">Unavailable</p>
       </div>
     </div>
      <div class="data">
       <div class="blob positif-color" style="margin-top:14px;"></div>
       <div>
         <p class="data-title">PASIEN</p>
-        <p class="data-number">30 Jiwa</p>
+        <p class="data-number" id="positive_counter">Unavailable</p>
       </div>
     </div>
   </div>
@@ -168,17 +168,16 @@
 <div id = "map"></div>
 <script>
 
-  axios.get('./panda_mdo_covid_dataset')
+ var dataJson = [];
+ axios.get('https://api.jsonbin.io/b/5ec1a70750c8594cd4f8a93d')
     .then(function (response) {
-      console.log(response);
+      dataJson = response.data;
     })
     .catch(function (error) {
-      resultElement.innerHTML = generateErrorHTMLOutput(error);
+    	alert("Gagal mengambil data");
     });   
 
-  var dataJson = [];
-
-  /*
+ 
   mapboxgl.accessToken = 'pk.eyJ1IjoiYWhtZWRraGFuMTAzOSIsImEiOiJjam5iZDgwejYwMnlpM3FyNzJvMDZhZHdoIn0.pcOWSRI2xzY_oMX0mVsLjg';
   
   var map = new mapboxgl.Map({
@@ -212,12 +211,60 @@
 
   map.on('load', function() {
     console.log(dataJson);
+    var odp = 0;
+    var pdp = 0;
+    var positif = 0;
     for(var i=0; i < dataJson.length;i++){
       console.log(dataJson[i].point_layer.id);
       map.addSource(dataJson[i].point_name, dataJson[i].point_source);
       map.addLayer(dataJson[i].point_layer);
+
+      if(dataJson[i].point_detail.status == "POSITIF"){
+      	positif++;
+      }
+      else if(dataJson[i].point_detail.status == "PDP"){
+      	pdp++;
+      }
+      else if(dataJson[i].point_detail.status == "ODP"){
+      	odp++;
+      }
     }
-  });*/
+
+    document.getElementById('odp_counter').innerHTML = odp + " Jiwa";
+    document.getElementById('pdp_counter').innerHTML = pdp + " Jiwa";
+    document.getElementById('positive_counter').innerHTML = positif + " Jiwa";
+
+  });
+
+  var marker = new mapboxgl.Marker({
+	draggable: true
+	})
+	.setLngLat([124.972541, 1.511773])
+	.addTo(map);
+ 
+	function onDragEnd() {
+	var lngLat = marker.getLngLat();
+	coordinates.style.display = 'block';
+	coordinates.innerHTML =
+	'Longitude: ' + lngLat.lng + '<br />Latitude: ' + lngLat.lat;
+	}
+ 
+	marker.on('dragend', onDragEnd);
+
+ 	map.on('mousemove', function(e) {
+		document.getElementById('info').innerHTML =
+			// e.lngLat is the longitude, latitude geographical position of the event
+		console.log(e.lngLat.lng);
+		JSON.stringify(e.lngLat.wrap());
+	});
+
+ 	var derajat_bumi = 0.017453293;
+ 	var r_bumi       = 6371;
+
+	function calculateHarvesine(lat, long){
+
+	}
+
 
 </script>
 </body>
