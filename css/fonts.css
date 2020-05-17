@@ -1,0 +1,9 @@
+@font-face {
+  font-family : 'product-regular';
+  src         : url('../assets/fonts/productsansregular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family : 'product-bold';
+  src         : url('../assets/fonts/productsansbold.ttf') format('truetype');
+}
