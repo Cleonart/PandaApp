@@ -7,6 +7,9 @@
   <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.50.0/mapbox-gl.js'></script>
   <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.50.0/mapbox-gl.css' rel='stylesheet' />
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+
+
   <link href="./css/fonts.css" type="text/css" rel="stylesheet">
   <style>
 
@@ -28,6 +31,19 @@
       top: 0;
       bottom: 0;
       width: 100%;
+    }
+
+    .titles{
+    	font-size:26px;
+    	color:#000;
+    	font-family:'product-bold';
+    }
+
+    .subtitles{
+    	font-size:17px;
+    	color:#000;
+    	font-family:'product-bold';
+    	line-height:37px;
     }
 
     #sidebar .title{
@@ -177,9 +193,8 @@
     	alert("Gagal mengambil data");
     });   
 
- 
   mapboxgl.accessToken = 'pk.eyJ1IjoiYWhtZWRraGFuMTAzOSIsImEiOiJjam5iZDgwejYwMnlpM3FyNzJvMDZhZHdoIn0.pcOWSRI2xzY_oMX0mVsLjg';
-  
+
   var map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/dark-v9',
@@ -243,28 +258,61 @@
 	.addTo(map);
  
 	function onDragEnd() {
-	var lngLat = marker.getLngLat();
-	coordinates.style.display = 'block';
-	coordinates.innerHTML =
-	'Longitude: ' + lngLat.lng + '<br />Latitude: ' + lngLat.lat;
+		var lngLat = marker.getLngLat();
+		calculateHarvesine(lngLat.lat, lngLat.lng);
 	}
  
 	marker.on('dragend', onDragEnd);
 
  	map.on('mousemove', function(e) {
-		document.getElementById('info').innerHTML =
-			// e.lngLat is the longitude, latitude geographical position of the event
-		console.log(e.lngLat.lng);
-		JSON.stringify(e.lngLat.wrap());
+		//console.log(e.lngLat);
 	});
 
- 	var derajat_bumi = 0.017453293;
- 	var r_bumi       = 6371;
+	function calculateHarvesine(lat,long){
 
-	function calculateHarvesine(lat, long){
+		for(var i=0; i < dataJson.length;i++){
 
+			Number.prototype.toRad = function() {
+				return this * Math.PI / 180;
+			}
+
+			var lat2 = lat; 
+			var lon2 = long; 
+			var lat1 = dataJson[i].point_source.data.coordinates[1]; 
+			var lon1 = dataJson[i].point_source.data.coordinates[0]; 
+			console.log(lat1);
+			var R = 6371; // km 
+			//has a problem with the .toRad() method below.
+			var x1 = lat2-lat1;
+			var dLat = x1.toRad();  
+			var x2 = lon2-lon1;
+			var dLon = x2.toRad();  
+			var a = Math.sin(dLat/2) * Math.sin(dLat/2) + 
+			                Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) * 
+			                Math.sin(dLon/2) * Math.sin(dLon/2);  
+			var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+			var d = R * c; 
+			console.log(d + " km");
+
+			if(d < 0.5){
+				var type = 0;
+				if(dataJson[i].point_detail.status == "POSITIF"){
+			      	type = "error";
+			      }
+			      else if(dataJson[i].point_detail.status == "PDP"){
+			      	type = "error";
+			      }
+			      else if(dataJson[i].point_detail.status == "ODP"){
+			      	type = "warning";
+			      }
+				Swal.fire({
+				  html : "<p class='titles'>Jaga Jarak Anda</p><p class='subtitles'>Ada pasien berstatus " + dataJson[i].point_detail.status + " di dekat anda<br/><span style='font-size:26px'>Jarak " + d.toFixed(2) + " km</span></p>",
+				  icon: type,
+				  confirmButtonText: 'Jaga Jarak'
+				})
+			}
+		}
 	}
-
 
 </script>
 </body>
